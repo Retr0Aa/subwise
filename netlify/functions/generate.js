@@ -14,7 +14,8 @@ export async function handler(event) {
       return { statusCode: 400, body: JSON.stringify({ text: "" }) };
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // Use a valid model from Google AI Studio
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt =
       `Give the user with name ${username} advice for his current subscriptions: ` +
