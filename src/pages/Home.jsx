@@ -4,13 +4,17 @@ import { useAuth } from "../AuthContext";
 import { MdSubscriptions } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { doc, collection, getDoc, setDoc, updateDoc, deleteField } from "firebase/firestore";
-import { db } from "../config/firebase.js"; // make sure your firebase is initialized
+import { db } from "../config/firebase.js";
+import Alert from "react-bootstrap/Alert";
 
 export default function Home() {
     const { user } = useAuth();
     const [items, setItems] = useState([]);
     const [name, setName] = useState("");
     const [price, setPrice] = useState("");
+
+    const [aiResponse, setAiResponse] = useState("");
+    const [aiLoading, setAiLoading] = useState(false);
 
     const navigate = useNavigate();
 
@@ -35,6 +39,15 @@ export default function Home() {
                 console.error("Error loading subscriptions:", err);
             }
         };
+
+        const loadAI = async () => {
+            const snap = await getDoc(doc(db, "users", user.uid));
+            if (snap.exists()) {
+                setAiResponse(snap.data().latestResponse || "");
+            }
+        };
+
+        loadAI();
         loadSubscriptions();
     }, [user]);
 
@@ -49,6 +62,35 @@ export default function Home() {
             </Container>
         );
     }
+
+    const generateAI = async () => {
+        if (items.length === 0) return;
+
+        setAiLoading(true);
+
+        const res = await fetch("/.netlify/functions/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                username: user.displayName || "User",
+                subscriptions: items.map(i => `${i.name} (€${i.price})`),
+            }),
+        });
+
+        let data;
+        try {
+            data = await res.json();
+        } catch {
+            data = { text: "AI service did not respond. Try again later." };
+        }
+        setAiResponse(data.text);
+
+        await updateDoc(doc(db, "users", user.uid), {
+            latestResponse: data.text,
+        });
+
+        setAiLoading(false);
+    };
 
     const updateFirestore = async (newItems) => {
         try {
@@ -179,6 +221,18 @@ export default function Home() {
                 <strong>
                     You are spending <span style={{ color: "var(--bs-primary)" }}>€{overallCost}</span> monthly.
                 </strong>
+            </div>
+
+            <div className="mt-3">
+                <Button onClick={generateAI} disabled={aiLoading}>
+                    {aiLoading ? "Thinking..." : "Get AI Advice"}
+                </Button>
+
+                {aiResponse && (
+                    <Alert variant="info" className="mt-3">
+                        {aiResponse}
+                    </Alert>
+                )}
             </div>
         </Container>
     );
