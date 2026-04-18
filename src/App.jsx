@@ -13,7 +13,7 @@ function PrivateRoute({ children }) {
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <BrowserRouter basename="/subwise">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
