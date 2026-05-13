@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Button, ListGroup, InputGroup } from "react-bootstrap";
 import { useAuth } from "../AuthContext";
-import { MdSubscriptions } from "react-icons/md";
+import { FcMoneyTransfer } from "react-icons/fc";
 import { useNavigate } from "react-router-dom";
 import { doc, collection, getDoc, setDoc, updateDoc, deleteField } from "firebase/firestore";
 import { db } from "../config/firebase.js";
@@ -20,23 +20,23 @@ export default function Home() {
 
     const overallCost = items.reduce((sum, item) => sum + Number(item.price), 0);
 
-    // Load subscriptions from Firestore
+    // Load expenses from Firestore
     useEffect(() => {
         if (!user) return;
-        const loadSubscriptions = async () => {
+        const loadExpenses = async () => {
             try {
                 const userDoc = doc(db, "users", user.uid);
                 const snapshot = await getDoc(userDoc);
                 if (snapshot.exists()) {
-                    const data = snapshot.data().subscriptions || {};
-                    const subsArray = Object.entries(data).map(([subName, cost]) => ({
-                        name: subName,
+                    const data = snapshot.data().expenses || {};
+                    const expensesArray = Object.entries(data).map(([expenseName, cost]) => ({
+                        name: expenseName,
                         price: cost,
                     }));
-                    setItems(subsArray);
+                    setItems(expensesArray);
                 }
             } catch (err) {
-                console.error("Error loading subscriptions:", err);
+                console.error("Error loading expenses:", err);
             }
         };
 
@@ -48,14 +48,14 @@ export default function Home() {
         };
 
         loadAI();
-        loadSubscriptions();
+        loadExpenses();
     }, [user]);
 
     if (!user) {
         return (
             <Container className="mt-4 d-flex justify-content-center align-items-center flex-column" style={{ height: "80vh" }}>
-                <h1 className="mb-3 text-center">Subwise - Your Subscription Manager</h1>
-                <h5 className="mb-3 text-center">Manage your subscriptions, see how much you spend on them and get tips for saving money from AI.</h5>
+                <h1 className="mb-3 text-center">Subwise - Your Expenses Manager</h1>
+                <h5 className="mb-3 text-center">Manage your expenses, see how much you spend on them and get tips for saving money from AI.</h5>
                 <Button onClick={() => navigate("/login")}>Login</Button>
                 <p className="mt-3">Don't have an account? <a href="/register">Sign up</a></p>
                 <p className="text-danger mt-3 fst-italic">You need to login to use Subwise.</p>
@@ -73,7 +73,7 @@ export default function Home() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 username: user.displayName || "User",
-                subscriptions: items.map(i => `${i.name} (€${i.price})`),
+                expenses: items.map(i => `${i.name} (€${i.price})`),
             }),
         });
 
@@ -95,11 +95,11 @@ export default function Home() {
     const updateFirestore = async (newItems) => {
         try {
             const userDoc = doc(db, "users", user.uid);
-            const subscriptions = {};
+            const expenses = {};
             newItems.forEach(item => {
-                subscriptions[item.name] = Number(item.price);
+                expenses[item.name] = Number(item.price);
             });
-            await setDoc(userDoc, { subscriptions }, { merge: true });
+            await setDoc(userDoc, { expenses }, { merge: true });
         } catch (err) {
             console.error("Error updating Firestore:", err);
         }
@@ -146,7 +146,7 @@ export default function Home() {
         <Container className="mt-4">
             <Row className="align-items-center mb-3">
                 <Col>
-                    <h3>Subwise - Subscription Manager</h3>
+                    <h3>Subwise - Expenses Manager</h3>
                 </Col>
                 <Col xs="auto">
                     <Button onClick={() => navigate("/account")}>Account</Button>
@@ -200,7 +200,7 @@ export default function Home() {
                                             onError={(e) => { e.target.onerror = null; e.target.style.display = "none"; }}
                                         />
                                     ) : (
-                                        <MdSubscriptions size={24} />
+                                        <FcMoneyTransfer size={24} />
                                     )}
                                     <span>{item.name} — €{item.price}</span>
                                 </div>

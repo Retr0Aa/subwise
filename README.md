@@ -1,18 +1,18 @@
 # Subwise
 
-Subwise is a React app for tracking monthly subscriptions, calculating total spend, and generating AI suggestions to help users cut unnecessary costs.
+Subwise is a React app for tracking monthly expenses, calculating total spend, and generating AI suggestions to help users cut unnecessary costs.
 
-The project uses Firebase Authentication for login, Firestore for storing subscription data, and a Netlify Function that calls Google Gemini to generate personalized advice.
+The project uses Firebase Authentication for login, Firestore for storing expense data, and a Netlify Function that calls Google Gemini to generate personalized advice.
 
 ## Features
 
 - Email/password registration and login
 - Google sign-in with Firebase Authentication
 - Protected account page for logged-in users
-- Add and remove subscriptions with monthly prices
+- Add and remove expenses with monthly prices
 - Automatic monthly total calculation
 - Firestore persistence per user
-- AI-generated subscription advice powered by Gemini
+- AI-generated expenses advice powered by Gemini
 - Netlify-ready deployment setup
 
 ## Tech Stack
@@ -24,28 +24,10 @@ The project uses Firebase Authentication for login, Firestore for storing subscr
 - Firebase Authentication
 - Cloud Firestore
 - Netlify Functions
-- Google Generative AI SDK
 
 ## How It Works
 
-After a user signs in, Subwise loads their subscriptions from Firestore and shows the current monthly total. When the user clicks `Get AI Advice`, the frontend sends the subscription list to the Netlify function at `/.netlify/functions/generate`. That function calls Gemini and stores the latest AI response back in Firestore so it can be shown again later.
-
-## Project Structure
-
-```text
-src/
-  pages/
-    Home.jsx
-    Login.jsx
-    Register.jsx
-    Account.jsx
-  config/firebase.js
-  AuthContext.jsx
-  App.jsx
-netlify/
-  functions/
-    generate.js
-```
+After a user signs in, Subwise loads their expenses from Firestore and shows the current monthly total. When the user clicks `Get AI Advice`, the frontend sends the expenses list to the Netlify function at `/.netlify/functions/generate`. That function calls Gemini and stores the latest AI response back in Firestore so it can be shown again later.
 
 ## Getting Started
 
@@ -55,18 +37,7 @@ netlify/
 npm install
 ```
 
-### 2. Configure Firebase
-
-Create your Firebase project and enable:
-
-- Authentication
-- Email/Password sign-in
-- Google sign-in
-- Cloud Firestore
-
-Then update [`src/config/firebase.js`](/Users/alexanderbuchkov/Desktop/Programming/subwise/src/config/firebase.js) with your Firebase project credentials.
-
-### 3. Configure environment variables
+### 2. Configure environment variables
 
 Create a local `.env` file with:
 
@@ -76,7 +47,7 @@ GEMINI_API_KEY=your_gemini_api_key
 
 This key is used by the Netlify serverless function in [`netlify/functions/generate.js`](/Users/alexanderbuchkov/Desktop/Programming/subwise/netlify/functions/generate.js).
 
-### 4. Run the project
+### 3. Run the project
 
 For frontend-only development:
 
@@ -113,38 +84,10 @@ Example document:
 
 ```json
 {
-  "subscriptions": {
+  "expenses": {
     "Netflix": 12.99,
     "Spotify": 5.99
   },
   "latestResponse": "You may want to cancel one of the overlapping streaming services..."
 }
 ```
-
-## Deployment
-
-This project includes [`netlify.toml`](/Users/alexanderbuchkov/Desktop/Programming/subwise/netlify.toml) for deployment on Netlify.
-
-- `dist` is used as the publish directory
-- `netlify/functions` is used for serverless functions
-- a SPA redirect sends all routes to `index.html`
-
-When deploying, add `GEMINI_API_KEY` in your Netlify environment variables.
-
-## Notes
-
-- Firebase config is currently stored directly in the frontend config file. For production, consider moving client configuration to Vite environment variables for easier environment management.
-- The Gemini API key should never be committed to version control.
-- `.env` is not currently ignored by this repository, so adding it to `.gitignore` would be a good next step.
-
-## Future Improvements
-
-- Edit existing subscriptions
-- Support yearly billing and billing dates
-- Add charts and spending history
-- Categorize subscriptions by type
-- Improve prompt design for more useful AI advice
-
-## License
-
-This project is for personal/portfolio use unless you choose to add a license.
