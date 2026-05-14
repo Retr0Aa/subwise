@@ -54,7 +54,7 @@ export default function Register() {
 
             {error && <p className="text-danger mt-2">{error}</p>}
 
-            <p className="mt-3">Already have an account? <a href="/login">Log in</a></p>
+            <p className="mt-3">Already have an account? <a href="/subwise/login">Log in</a></p>
         </Container>
     );
 }

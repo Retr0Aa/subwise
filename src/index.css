@@ -1,0 +1,6 @@
+.subscriptop-icon-button:hover {
+
+    img, svg {
+        filter: brightness(0.8);
+    }
+}

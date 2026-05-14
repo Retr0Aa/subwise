@@ -88,7 +88,7 @@ export default function Login() {
 
             {error && <p className="text-danger mt-2">{error}</p>}
 
-            <p className="mt-3">Don't have an account? <a href="/register">Sign up</a></p>
+            <p className="mt-3">Don't have an account? <a href="/subwise/register">Sign up</a></p>
         </Container>
     );
 }
