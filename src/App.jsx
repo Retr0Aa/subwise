@@ -2,7 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Account from "./pages/Account";
-import { AuthProvider, useAuth } from "./AuthContext"; // make sure the path is correct
+import { AuthProvider } from "./AuthContext";
+import { useAuth } from "./useAuth";
 import Register from "./pages/Register";
 
 function PrivateRoute({ children }) {

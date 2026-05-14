@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useAuth } from "../AuthContext";
+import { useAuth } from "../useAuth";
 import { signOut, updateProfile } from "firebase/auth";
 import { auth } from "../config/firebase";
 import { Button, Col, Container, Form, Row } from "react-bootstrap";

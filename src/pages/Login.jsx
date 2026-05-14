@@ -28,7 +28,7 @@ export default function Login() {
             }
             await signInWithEmailAndPassword(auth, email, password);
             navigate("/");
-        } catch (err) {
+        } catch {
             setError("Incorrect email or password.");
         }
     };
@@ -38,7 +38,7 @@ export default function Login() {
         try {
             await signInWithPopup(auth, googleProvider);
             navigate("/");
-        } catch (err) {
+        } catch {
             setError("Google login failed. Try again.");
         }
     };

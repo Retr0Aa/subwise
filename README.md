@@ -2,7 +2,7 @@
 
 Subwise is a React app for tracking monthly expenses, calculating total spend, and generating AI suggestions to help users cut unnecessary costs.
 
-The project uses Firebase Authentication for login, Firestore for storing expense data, and a Netlify Function that calls Google Gemini to generate personalized advice.
+The project uses Firebase Authentication for login, Firestore for storing expense data, and WebLLM to run TinyLlama directly in the browser for private local advice.
 
 ## Features
 
@@ -12,8 +12,8 @@ The project uses Firebase Authentication for login, Firestore for storing expens
 - Add and remove expenses with monthly prices
 - Automatic monthly total calculation
 - Firestore persistence per user
-- AI-generated expenses advice powered by Gemini
-- Netlify-ready deployment setup
+- AI-generated expenses advice powered by TinyLlama in the browser
+- No AI server or API key required
 
 ## Tech Stack
 
@@ -23,11 +23,11 @@ The project uses Firebase Authentication for login, Firestore for storing expens
 - React Bootstrap
 - Firebase Authentication
 - Cloud Firestore
-- Netlify Functions
+- WebLLM
 
 ## How It Works
 
-After a user signs in, Subwise loads their expenses from Firestore and shows the current monthly total. When the user clicks `Get AI Advice`, the frontend sends the expenses list to the Netlify function at `/.netlify/functions/generate`. That function calls Gemini and stores the latest AI response back in Firestore so it can be shown again later.
+After a user signs in, Subwise loads their expenses from Firestore and shows the current monthly total. When the user clicks `Get AI Advice`, the app loads TinyLlama-1.1B-Chat-v0.4-q4f32_1-MLC-1k in a Web Worker, streams progress into the UI, and sends the full expenses list to the local model. The latest response is stored back in Firestore so it can be shown again later.
 
 ## Getting Started
 
@@ -37,17 +37,7 @@ After a user signs in, Subwise loads their expenses from Firestore and shows the
 npm install
 ```
 
-### 2. Configure environment variables
-
-Create a local `.env` file with:
-
-```env
-GEMINI_API_KEY=your_gemini_api_key
-```
-
-This key is used by the Netlify serverless function in [`netlify/functions/generate.js`](/Users/alexanderbuchkov/Desktop/Programming/subwise/netlify/functions/generate.js).
-
-### 3. Run the project
+### 2. Run the project
 
 For frontend-only development:
 
@@ -55,13 +45,7 @@ For frontend-only development:
 npm run dev
 ```
 
-For full local development with the Netlify function available, run the app through Netlify Dev:
-
-```bash
-npx netlify dev
-```
-
-Use `netlify dev` when you want the `Get AI Advice` button to work locally, because the app calls `/.netlify/functions/generate`.
+The AI button now runs locally in the browser, so `npm run dev` is enough. The first run may take a while because the TinyLlama model must download before it can answer.
 
 ## Available Scripts
 

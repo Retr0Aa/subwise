@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Container, Row, Col, Form, Button, ListGroup, InputGroup, Modal, OverlayTrigger, Tooltip } from "react-bootstrap";
-import { useAuth } from "../AuthContext";
+import { Container, Row, Col, Form, Button, ListGroup, InputGroup, Modal, OverlayTrigger, Tooltip, ProgressBar } from "react-bootstrap";
+import { useAuth } from "../useAuth";
 import { FcMoneyTransfer } from "react-icons/fc";
 import { useNavigate } from "react-router-dom";
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "../config/firebase.js";
 import Alert from "react-bootstrap/Alert";
+import { getAiExpenseAdvice } from "../utils/aiExpenseAdvisor";
 
 export default function Home() {
     const { user } = useAuth();
@@ -18,6 +19,9 @@ export default function Home() {
 
     const [aiResponse, setAiResponse] = useState("");
     const [aiLoading, setAiLoading] = useState(false);
+    const [aiProgress, setAiProgress] = useState(0);
+    const [aiStatus, setAiStatus] = useState("");
+    const [aiError, setAiError] = useState("");
 
     const navigate = useNavigate();
 
@@ -72,32 +76,47 @@ export default function Home() {
     }
 
     const generateAI = async () => {
-        if (items.length === 0) return;
+        if (items.length === 0) {
+            setAiError("Add at least one expense before asking for AI advice.");
+            return;
+        }
 
         setAiLoading(true);
+        setAiError("");
+        setAiResponse("");
+        setAiProgress(0.02);
+        setAiStatus("Preparing TinyLlama...");
 
-        const res = await fetch("/.netlify/functions/generate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                username: user.displayName || "User",
-                expenses: items.map(i => `${i.name} (€${i.price})`),
-            }),
-        });
-
-        let data;
         try {
-            data = await res.json();
-        } catch {
-            data = { text: "AI service did not respond. Try again later." };
+            const text = await getAiExpenseAdvice({
+                userName: user.displayName || "User",
+                expenses: items,
+                onProgress: ({ phase, progress, text: statusText }) => {
+                    setAiStatus(statusText);
+                    setAiProgress(progress);
+                    if (phase === "loading") {
+                        setAiResponse("Downloading and preparing the local model...");
+                    }
+                },
+                onPartialResponse: (partial) => {
+                    setAiResponse(partial);
+                },
+            });
+
+            setAiResponse(text);
+            setAiProgress(1);
+            setAiStatus("Advice ready.");
+
+            await updateDoc(doc(db, "users", user.uid), {
+                latestResponse: text,
+            });
+        } catch (err) {
+            console.error("AI advice failed:", err);
+            setAiError(err?.message || "TinyLlama could not be loaded right now.");
+            setAiStatus("");
+        } finally {
+            setAiLoading(false);
         }
-        setAiResponse(data.text);
-
-        await updateDoc(doc(db, "users", user.uid), {
-            latestResponse: data.text,
-        });
-
-        setAiLoading(false);
     };
 
     const updateFirestore = async (newItems) => {
@@ -383,9 +402,33 @@ export default function Home() {
             </div>
 
             <div className="mt-3">
+                <div>
                 <Button onClick={generateAI} disabled={aiLoading}>
                     {aiLoading ? "Thinking..." : "Get AI Advice"}
                 </Button>
+
+                <p className="text-body-secondary mt-2">
+                    *Note that the AI runs locally and may generate unexpected or unaccurate responses.
+                </p>
+                </div>
+
+                {aiLoading && (
+                    <div className="mt-3">
+                        <ProgressBar
+                            animated
+                            striped
+                            now={Math.round(aiProgress * 100)}
+                            label={`${Math.round(aiProgress * 100)}%`}
+                        />
+                        <div className="mt-2 small text-body-secondary">{aiStatus}</div>
+                    </div>
+                )}
+
+                {aiError && (
+                    <Alert variant="warning" className="mt-3">
+                        {aiError}
+                    </Alert>
+                )}
 
                 {aiResponse && (
                     <Alert variant="info" className="mt-3">
